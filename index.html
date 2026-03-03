@@ -7,6 +7,42 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://use.typekit.net/jpe7fwd.css">
 </head>
+
+<script>
+(function () {
+  const btn = document.getElementById('addContactBtn');
+  if (!btn) return;
+
+  const isAndroid = /Android/i.test(navigator.userAgent);
+
+  if (isAndroid) {
+    // 1) download 속성 제거 (다운로드 강제 방지)
+    btn.removeAttribute('download');
+
+    // 2) 현재 페이지 기준으로 vcf의 절대 URL 생성
+    const vcfUrl = new URL('contact.vcf', window.location.href).toString();
+
+    // 3) Android intent 링크 (VIEW + vCard mime)
+    //    일부 기기에서는 type=text/x-vcard 또는 text/vcard 중 하나가 더 잘 먹힘
+    const intentUrl =
+      'intent://' + vcfUrl.replace(/^https?:\/\//, '') +
+      '#Intent;scheme=' + (vcfUrl.startsWith('https') ? 'https' : 'http') +
+      ';action=android.intent.action.VIEW;type=text/x-vcard;end';
+
+    btn.href = intentUrl;
+
+    // 4) 폴백: intent가 실패/차단되면 일반 vcf로 이동(다운로드/열기 중 기기 정책 따름)
+    btn.addEventListener('click', function () {
+      setTimeout(function () {
+        // intent가 막히면 아무 동작이 없을 수 있으니 폴백 시도
+        // (이미 앱 전환이 되면 이 setTimeout은 사용자 경험에 영향 거의 없음)
+        window.location.href = vcfUrl;
+      }, 700);
+    });
+  }
+})();
+</script>
+    
 <body>
     <div class="card">
         <div class="header">
@@ -25,7 +61,7 @@
                 <div class="realtor">Realtor</div>
                 <div class="agent-name">Sangjin Jung</div>
             </div>
-            <a href="contact.vcf" download="contact.vcf" class="contact">Add Contact</a>
+            <a href="contact.vcf" download="contact.vcf" class="contact" id="addContactBtn">Add Contact</a>
             <div class="call-email">
                 <a href="tel:+12015464857" class="call">Call</a>
                 <a href="mailto:sangjintomjung@gmail.com" class="email">Email</a>
@@ -69,5 +105,6 @@
 </body>
 
 </html>
+
 
 
